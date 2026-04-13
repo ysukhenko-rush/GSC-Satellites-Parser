@@ -1,0 +1,6 @@
+tokens/
+client_secret.json
+sheets_service_account.json
+__pycache__/
+*.pyc
+.env
