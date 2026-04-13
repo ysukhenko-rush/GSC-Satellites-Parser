@@ -25,17 +25,18 @@ jobs:
       - name: Restore GSC tokens
         run: |
           mkdir -p tokens
-          echo '${{ secrets.GSC_TOKENS_JSON }}' | python3 - <<'EOF'
-          import sys, json, os, base64
-          tokens = json.loads(open('/dev/stdin').read() if False else sys.stdin.read())
-          # tokens — dict {email: base64(pickle_bytes)}
-          # Смотри раздел «Подготовка секретов» в README
+          python3 -c "
+          import json, os, pickle, base64
+          tokens_json = os.environ['GSC_TOKENS_JSON']
+          tokens = json.loads(tokens_json)
           for email, b64 in tokens.items():
-              path = f"tokens/{email}.pickle"
+              path = f'tokens/{email}.pickle'
               with open(path, 'wb') as f:
                   f.write(base64.b64decode(b64))
-              print(f"  Восстановлен токен: {path}")
-          EOF
+              print(f'  Восстановлен токен: {path}')
+          "
+        env:
+          GSC_TOKENS_JSON: ${{ secrets.GSC_TOKENS_JSON }}
 
       - name: Restore Sheets service account
         run: echo '${{ secrets.SHEETS_SERVICE_ACCOUNT_JSON }}' > sheets_service_account.json
