@@ -14,8 +14,8 @@ from config import DOMAIN_ACCOUNT_MAP, TOKENS_DIR
 SPREADSHEET_ID = os.environ.get('SPREADSHEET_ID', '17u_jItYm8SgBtgO6Cck5gPCbAu_fL45lKhlguzkLzow')
 SHEET_NAME = 'Метрики'
 
-# GSC лагает ~3 дня; собираем данные за последние 7 дней до этой точки
-COLLECTION_DAYS = 7
+# GSC лагает ~3 дня; собираем данные за последние 28 дней до этой точки
+COLLECTION_DAYS = 28
 GSC_LAG_DAYS = 3
 
 
@@ -106,8 +106,17 @@ def collect_all():
             print(f"  Ошибка для {account}: {e}")
 
     if all_rows:
-        sheet.insert_rows(all_rows, row=2, value_input_option='RAW')
-        print(f"\nЗаписано строк: {len(all_rows)}")
+        # Определяем количество строк в таблице (без заголовка)
+        existing_rows = len(sheet.get_all_values()) - 1
+        if existing_rows > 0:
+            # Очищаем только столбцы A-H, начиная со второй строки
+            clear_range = f"A2:H{existing_rows + 1}"
+            sheet.batch_clear([clear_range])
+            print(f"Очищено строк в A-H: {existing_rows}")
+
+        # Вставляем новые данные начиная со второй строки (только A-H)
+        sheet.update(f"A2:H{len(all_rows) + 1}", all_rows, value_input_option='RAW')
+        print(f"Записано строк: {len(all_rows)}")
     else:
         print("\nНет данных для записи")
 
