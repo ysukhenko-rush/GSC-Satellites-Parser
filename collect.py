@@ -96,7 +96,8 @@ def collect_all(project: str, config: dict):
     print(f"[{project}] Дата запуска: {collection_date}  |  Периоды fallback: {COLLECTION_DAYS_FALLBACK} дней\n")
 
     all_rows = []
-    services = {}  # кеш сервисов по аккаунту
+    services = {}       # кеш сервисов по аккаунту
+    expired_accounts = set()  # аккаунты с протухшими токенами
 
     for domain_num, info in sorted(domain_map.items()):
         account = info["account"]
@@ -105,6 +106,8 @@ def collect_all(project: str, config: dict):
 
         try:
             if account not in services:
+                if account in expired_accounts:
+                    raise ValueError("token_expired")
                 creds = load_creds(account)
                 services[account] = build('searchconsole', 'v1', credentials=creds)
 
@@ -130,8 +133,29 @@ def collect_all(project: str, config: dict):
 
         except FileNotFoundError:
             print(f"  Токен не найден для {account}, пропуск")
+            expired_accounts.add(account)
         except Exception as e:
-            print(f"  Ошибка для {account}: {e}")
+            if 'invalid_grant' in str(e) or 'token_expired' in str(e):
+                expired_accounts.add(account)
+                print(f"  Токен протух для {account}, пропуск")
+            else:
+                print(f"  Ошибка для {account}: {e}")
+
+    if expired_accounts:
+        warning = (
+            f"⚠️ ОШИБКА СБОРА ДАННЫХ ({collection_date}): токены протухли для аккаунтов: "
+            f"{', '.join(sorted(expired_accounts))}. "
+            f"Нужно: 1) запустить python auth.py локально  "
+            f"2) запустить python prepare_secrets.py  "
+            f"3) обновить секрет GSC_TOKENS_JSON в GitHub → Settings → Secrets"
+        )
+        sheet.update("A1", [[warning]], value_input_option='RAW')
+        # Делаем ячейку красной для заметности
+        sheet.format("A1", {
+            "backgroundColor": {"red": 1.0, "green": 0.8, "blue": 0.8},
+            "textFormat": {"bold": True}
+        })
+        print(f"\n⚠️  Предупреждение записано в таблицу: {warning}")
 
     if all_rows:
         existing_rows = len(sheet.get_all_values()) - 1
@@ -143,7 +167,8 @@ def collect_all(project: str, config: dict):
         sheet.update(f"A2:H{len(all_rows) + 1}", all_rows, value_input_option='RAW')
         print(f"Записано строк: {len(all_rows)}")
     else:
-        print("\nНет данных для записи")
+        if not expired_accounts:
+            print("\nНет данных для записи")
 
 
 if __name__ == "__main__":
