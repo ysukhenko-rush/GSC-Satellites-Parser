@@ -34,3 +34,24 @@ DOMAIN_ACCOUNT_MAP = {
 }
 
 ACCOUNTS = list(set(v["account"] for v in DOMAIN_ACCOUNT_MAP.values()))
+
+# ── platov.co ──────────────────────────────────────────────────────────────────
+DOMAIN_ACCOUNT_MAP_PLATOV = {
+    1:  {"domain": "best-platform-to-sell-tron-in-nigeria.com",      "account": "rshcorporate5@gmail.com"},
+    2:  {"domain": "best-platform-to-sell-litecoin-in-nigeria.com",  "account": "rshcorporate6@gmail.com"},
+    3:  {"domain": "best-platform-to-sell-ethereum-in-nigeria.com",  "account": "rshcorporate5@gmail.com"},
+    4:  {"domain": "best-platform-to-sell-bitcoin-in-nigeria.com",   "account": "rshcorporate6@gmail.com"},
+    5:  {"domain": "best-bitcoin-exchange-in-kenya.com",             "account": "rshcorporate7@gmail.com"},
+    6:  {"domain": "best-platforms-to-buy-bitcoin-in-kenya.com",     "account": "rshcorporate4@gmail.com"},
+    7:  {"domain": "best-crypto-exchange-for-nigerians.com",         "account": "rshcorporate10@gmail.com"},
+    8:  {"domain": "best-cryptocurrency-exchange-in-kenya.com",      "account": "rshcorporate9@gmail.com"},
+    9:  {"domain": "best-platform-to-buy-ethereum-in-nigeria.com",   "account": "rshcorporate5@gmail.com"},
+    10: {"domain": "sell-bitcoin-to-naira.com",                      "account": "rshcorporate6@gmail.com"},
+    11: {"domain": "btc-to-ngn.com",                                 "account": "rshcorporate7@gmail.com"},
+    12: {"domain": "usdt-to-ngn.com",                                "account": "rshcorporate7@gmail.com"},
+    13: {"domain": "convert-crypto-to-naira.com",                    "account": "rshcorporate9@gmail.com"},
+    14: {"domain": "sell-bitcoin-in-nigeria.com",                    "account": "rshcorporate4@gmail.com"},
+    15: {"domain": "top10-crypto-exchanges-nigeria.com",             "account": "rshcorporate4@gmail.com"},
+    16: {"domain": "crypto-to-naira.com",                            "account": "rshcorporate10@gmail.com"},
+    17: {"domain": "sol-to-ngn.com",                                 "account": "rshcorporate10@gmail.com"},
+}
