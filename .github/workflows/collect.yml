@@ -41,7 +41,12 @@ jobs:
       - name: Restore Sheets service account
         run: echo '${{ secrets.SHEETS_SERVICE_ACCOUNT_JSON }}' > sheets_service_account.json
 
-      - name: Run collector
+      - name: Run collector — smsactivate
         env:
           SPREADSHEET_ID: ${{ secrets.SPREADSHEET_ID }}
-        run: python collect.py
+        run: python collect.py smsactivate
+
+      - name: Run collector — platov
+        env:
+          SPREADSHEET_ID_PLATOV: ${{ secrets.SPREADSHEET_ID_PLATOV }}
+        run: python collect.py platov
