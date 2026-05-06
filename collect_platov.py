@@ -14,14 +14,14 @@ from config import DOMAIN_ACCOUNT_MAP_PLATOV, TOKENS_DIR
 SPREADSHEET_ID = os.environ.get('SPREADSHEET_ID_PLATOV')
 SHEET_NAME = 'Метрики'
 
-# GSC лагает ~3 дня; собираем данные за последние 28 дней до этой точки
-COLLECTION_DAYS = 28
+# GSC лагает ~3 дня; пробуем периоды по убыванию пока не найдём данные
+COLLECTION_DAYS_FALLBACK = [28, 21, 14, 7, 3]
 GSC_LAG_DAYS = 3
 
 
-def get_date_range():
+def get_date_range(days: int):
     end = datetime.date.today() - datetime.timedelta(days=GSC_LAG_DAYS)
-    start = end - datetime.timedelta(days=COLLECTION_DAYS)
+    start = end - datetime.timedelta(days=days)
     return str(start), str(end)
 
 
@@ -52,6 +52,20 @@ def fetch_metrics(service, domain: str, start_date: str, end_date: str) -> list:
         return []
 
 
+def fetch_metrics_with_fallback(service, domain: str) -> tuple[list, int]:
+    """Пробует периоды 28→21→14→7→3 дня, возвращает (rows, использованный_период)."""
+    for days in COLLECTION_DAYS_FALLBACK:
+        start_date, end_date = get_date_range(days)
+        rows = fetch_metrics(service, domain, start_date, end_date)
+        if rows:
+            print(f"    Данные найдены за {days} дней ({start_date} → {end_date})")
+            return rows, days
+        else:
+            print(f"    Нет данных за {days} дней, пробуем меньше...")
+    print(f"    Данных нет даже за 3 дня")
+    return [], 0
+
+
 def collect_all():
     # Подключение к Google Sheets через service account
     scope = [
@@ -63,9 +77,8 @@ def collect_all():
     gc = gspread.authorize(sheets_creds)
     sheet = gc.open_by_key(SPREADSHEET_ID).worksheet(SHEET_NAME)
 
-    start_date, end_date = get_date_range()
     collection_date = str(datetime.date.today())
-    print(f"[platov.co] Период сбора: {start_date} → {end_date}  |  Дата запуска: {collection_date}\n")
+    print(f"[platov.co] Дата запуска: {collection_date}  |  Периоды fallback: {COLLECTION_DAYS_FALLBACK} дней\n")
 
     all_rows = []
     services = {}  # кеш сервисов по аккаунту
@@ -80,7 +93,7 @@ def collect_all():
                 creds = load_creds(account)
                 services[account] = build('searchconsole', 'v1', credentials=creds)
 
-            rows = fetch_metrics(services[account], domain, start_date, end_date)
+            rows, used_days = fetch_metrics_with_fallback(services[account], domain)
 
             for row in rows:
                 keys = row.get('keys', [])
