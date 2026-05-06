@@ -149,13 +149,16 @@ def collect_all(project: str, config: dict):
             f"2) запустить python prepare_secrets.py  "
             f"3) обновить секрет GSC_TOKENS_JSON в GitHub → Settings → Secrets"
         )
-        sheet.update("A1", [[warning]], value_input_option='RAW')
-        # Делаем ячейку красной для заметности
-        sheet.format("A1", {
+        # Пишем предупреждение в колонку I (за пределами данных A-H), строка 1
+        sheet.update("I1", [[warning]], value_input_option='RAW')
+        sheet.format("I1", {
             "backgroundColor": {"red": 1.0, "green": 0.8, "blue": 0.8},
             "textFormat": {"bold": True}
         })
-        print(f"\n⚠️  Предупреждение записано в таблицу: {warning}")
+        print(f"\n⚠️  Предупреждение записано в таблицу (I1): {warning}")
+    else:
+        # Очищаем предупреждение если всё ок
+        sheet.update("I1", [[""]], value_input_option='RAW')
 
     if all_rows:
         existing_rows = len(sheet.get_all_values()) - 1
