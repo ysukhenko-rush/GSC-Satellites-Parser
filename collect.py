@@ -9,19 +9,27 @@ from google.auth.transport.requests import Request
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
-from config import DOMAIN_ACCOUNT_MAP, TOKENS_DIR
+from config import DOMAIN_ACCOUNT_MAP, DOMAIN_ACCOUNT_MAP_PLATOV, TOKENS_DIR
 
-SPREADSHEET_ID = os.environ.get('SPREADSHEET_ID', '17u_jItYm8SgBtgO6Cck5gPCbAu_fL45lKhlguzkLzow')
 SHEET_NAME = 'Метрики'
-
-# GSC лагает ~3 дня; собираем данные за последние 28 дней до этой точки
-COLLECTION_DAYS = 28
 GSC_LAG_DAYS = 3
+COLLECTION_DAYS_FALLBACK = [28, 21, 14, 7, 3]
+
+PROJECTS = {
+    'smsactivate': {
+        'domain_map': DOMAIN_ACCOUNT_MAP,
+        'spreadsheet_id': os.environ.get('SPREADSHEET_ID', '17u_jItYm8SgBtgO6Cck5gPCbAu_fL45lKhlguzkLzow'),
+    },
+    'platov': {
+        'domain_map': DOMAIN_ACCOUNT_MAP_PLATOV,
+        'spreadsheet_id': os.environ.get('SPREADSHEET_ID_PLATOV'),
+    },
+}
 
 
-def get_date_range():
+def get_date_range(days: int):
     end = datetime.date.today() - datetime.timedelta(days=GSC_LAG_DAYS)
-    start = end - datetime.timedelta(days=COLLECTION_DAYS)
+    start = end - datetime.timedelta(days=days)
     return str(start), str(end)
 
 
@@ -52,7 +60,28 @@ def fetch_metrics(service, domain: str, start_date: str, end_date: str) -> list:
         return []
 
 
-def collect_all():
+def fetch_metrics_with_fallback(service, domain: str) -> list:
+    """Пробует периоды 28→21→14→7→3 дня, возвращает первый непустой результат."""
+    for days in COLLECTION_DAYS_FALLBACK:
+        start_date, end_date = get_date_range(days)
+        rows = fetch_metrics(service, domain, start_date, end_date)
+        if rows:
+            print(f"    Данные найдены за {days} дней ({start_date} → {end_date})")
+            return rows
+        else:
+            print(f"    Нет данных за {days} дней, пробуем меньше...")
+    print(f"    Данных нет даже за 3 дня")
+    return []
+
+
+def collect_all(project: str, config: dict):
+    domain_map = config['domain_map']
+    spreadsheet_id = config['spreadsheet_id']
+
+    if not spreadsheet_id:
+        print(f"[{project}] Не задан SPREADSHEET_ID, пропуск")
+        return
+
     # Подключение к Google Sheets через service account
     scope = [
         'https://spreadsheets.google.com/feeds',
@@ -61,16 +90,15 @@ def collect_all():
     sheets_creds = ServiceAccountCredentials.from_json_keyfile_name(
         'sheets_service_account.json', scope)
     gc = gspread.authorize(sheets_creds)
-    sheet = gc.open_by_key(SPREADSHEET_ID).worksheet(SHEET_NAME)
+    sheet = gc.open_by_key(spreadsheet_id).worksheet(SHEET_NAME)
 
-    start_date, end_date = get_date_range()
     collection_date = str(datetime.date.today())
-    print(f"Период сбора: {start_date} → {end_date}  |  Дата запуска: {collection_date}\n")
+    print(f"[{project}] Дата запуска: {collection_date}  |  Периоды fallback: {COLLECTION_DAYS_FALLBACK} дней\n")
 
     all_rows = []
     services = {}  # кеш сервисов по аккаунту
 
-    for domain_num, info in sorted(DOMAIN_ACCOUNT_MAP.items()):
+    for domain_num, info in sorted(domain_map.items()):
         account = info["account"]
         domain = info["domain"]
         print(f"  #{domain_num:>2}  {domain}  ({account})")
@@ -80,7 +108,7 @@ def collect_all():
                 creds = load_creds(account)
                 services[account] = build('searchconsole', 'v1', credentials=creds)
 
-            rows = fetch_metrics(services[account], domain, start_date, end_date)
+            rows = fetch_metrics_with_fallback(services[account], domain)
 
             for row in rows:
                 keys = row.get('keys', [])
@@ -106,15 +134,12 @@ def collect_all():
             print(f"  Ошибка для {account}: {e}")
 
     if all_rows:
-        # Определяем количество строк в таблице (без заголовка)
         existing_rows = len(sheet.get_all_values()) - 1
         if existing_rows > 0:
-            # Очищаем только столбцы A-H, начиная со второй строки
             clear_range = f"A2:H{existing_rows + 1}"
             sheet.batch_clear([clear_range])
             print(f"Очищено строк в A-H: {existing_rows}")
 
-        # Вставляем новые данные начиная со второй строки (только A-H)
         sheet.update(f"A2:H{len(all_rows) + 1}", all_rows, value_input_option='RAW')
         print(f"Записано строк: {len(all_rows)}")
     else:
@@ -122,4 +147,5 @@ def collect_all():
 
 
 if __name__ == "__main__":
-    collect_all()
+    for project_name, project_config in PROJECTS.items():
+        collect_all(project_name, project_config)
