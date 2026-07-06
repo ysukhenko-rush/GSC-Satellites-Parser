@@ -54,4 +54,12 @@ DOMAIN_ACCOUNT_MAP_PLATOV = {
     15: {"domain": "top10-crypto-exchanges-nigeria.com",             "account": "rshcorporate4@gmail.com"},
     16: {"domain": "crypto-to-naira.com",                            "account": "rshcorporate10@gmail.com"},
     17: {"domain": "sol-to-ngn.com",                                 "account": "rshcorporate10@gmail.com"},
+    18: {"domain": "sell-crypto-to-naira.com",                       "account": "rshcorporate9@gmail.com"},
+    19: {"domain": "sell-usdt-to-naira.com",                         "account": "rshcorporate3@gmail.com"},
+    20: {"domain": "sell-ethereum-in-nigeria.com",                   "account": "rshcorporate1@gmail.com"},
+    21: {"domain": "convert-bitcoin-to-naira.com",                   "account": "rshcorporate1@gmail.com"},
+    22: {"domain": "sell-bitcoin-cash-in-nigeria.com",               "account": "rshcorporate1@gmail.com"},
+    23: {"domain": "sell-usdt-in-nigeria.com",                       "account": "rshcorporate1@gmail.com"},
+    24: {"domain": "eth-to-ngn.com",                                 "account": "rshcorporate1@gmail.com"},
+    25: {"domain": "sell-bch-in-nigeria.com",                        "account": "rshcorporate1@gmail.com"},
 }
