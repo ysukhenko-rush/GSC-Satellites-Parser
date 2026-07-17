@@ -63,3 +63,10 @@ DOMAIN_ACCOUNT_MAP_PLATOV = {
     24: {"domain": "eth-to-ngn.com",                                 "account": "rshcorporate1@gmail.com"},
     25: {"domain": "sell-bch-in-nigeria.com",                        "account": "rshcorporate1@gmail.com"},
 }
+
+# ── prime-formation.com ────────────────────────────────────────────────────────
+DOMAIN_ACCOUNT_MAP_PRIME = {
+    1: {"domain": "best-ddos-protection-tools.com", "account": "rshcorporate1@gmail.com"},
+    2: {"domain": "bot-management-solutions.com",   "account": "rshcorporate2@gmail.com"},
+    3: {"domain": "igaming-fraud-detection.com",    "account": "rshcorporate3@gmail.com"},
+}

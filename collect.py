@@ -9,7 +9,7 @@ from google.auth.transport.requests import Request
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
-from config import DOMAIN_ACCOUNT_MAP, DOMAIN_ACCOUNT_MAP_PLATOV, TOKENS_DIR
+from config import DOMAIN_ACCOUNT_MAP, DOMAIN_ACCOUNT_MAP_PLATOV, DOMAIN_ACCOUNT_MAP_PRIME, TOKENS_DIR
 
 SHEET_NAME = 'Метрики'
 GSC_LAG_DAYS = 3
@@ -23,6 +23,10 @@ PROJECTS = {
     'platov': {
         'domain_map': DOMAIN_ACCOUNT_MAP_PLATOV,
         'spreadsheet_id': os.environ.get('SPREADSHEET_ID_PLATOV'),
+    },
+    'prime': {
+        'domain_map': DOMAIN_ACCOUNT_MAP_PRIME,
+        'spreadsheet_id': os.environ.get('SPREADSHEET_ID_PRIME'),
     },
 }
 

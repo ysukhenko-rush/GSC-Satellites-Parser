@@ -45,4 +45,5 @@ jobs:
         env:
           SPREADSHEET_ID: ${{ secrets.SPREADSHEET_ID }}
           SPREADSHEET_ID_PLATOV: ${{ secrets.SPREADSHEET_ID_PLATOV }}
+          SPREADSHEET_ID_PRIME: ${{ secrets.SPREADSHEET_ID_PRIME }}
         run: python collect.py
