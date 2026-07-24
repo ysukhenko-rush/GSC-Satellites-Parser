@@ -33,8 +33,6 @@ DOMAIN_ACCOUNT_MAP = {
     30: {"domain": "sms-activator.biz",              "account": "rshcorporate3@gmail.com"},
 }
 
-ACCOUNTS = list(set(v["account"] for v in DOMAIN_ACCOUNT_MAP.values()))
-
 # ── platov.co ──────────────────────────────────────────────────────────────────
 DOMAIN_ACCOUNT_MAP_PLATOV = {
     1:  {"domain": "best-platform-to-sell-tron-in-nigeria.com",      "account": "rshcorporate5@gmail.com"},
@@ -70,3 +68,23 @@ DOMAIN_ACCOUNT_MAP_PRIME = {
     2: {"domain": "bot-management-solutions.com",   "account": "rshcorporate2@gmail.com"},
     3: {"domain": "igaming-fraud-detection.com",    "account": "rshcorporate3@gmail.com"},
 }
+
+# ── mightycall.com ────────────────────────────────────────────────────────────
+DOMAIN_ACCOUNT_MAP_MIGHTYCALL = {
+    1:  {"domain": "auto-dialer-online.org",                   "account": "rshcorporate1@gmail.com"},
+    2:  {"domain": "internet-auto-dialer.com",                 "account": "rshcorporate3@gmail.com"},
+    3:  {"domain": "voip-autodialer.org",                      "account": "rshcorporate4@gmail.com"},
+    4:  {"domain": "auto-dialer-voip.com",                     "account": "rshcorporate5@gmail.com"},
+    5:  {"domain": "hosted-autodialer.com",                    "account": "rshcorporate6@gmail.com"},
+    6:  {"domain": "automated-telemarketing-software.com",     "account": "rshcorporate7@gmail.com"},
+    7:  {"domain": "automated-telemarketing.com",              "account": "rshcorporate8@gmail.com"},
+    8:  {"domain": "auto-call-center.com",                     "account": "rshcorporate9@gmail.com"},
+    9:  {"domain": "dialer-systems-for-call-centers.com",      "account": "rshcorporate10@gmail.com"},
+    10: {"domain": "auto-caller-app.com",                      "account": "rshcorporate11@gmail.com"},
+}
+
+ACCOUNTS = list(set(
+    v["account"]
+    for m in (DOMAIN_ACCOUNT_MAP, DOMAIN_ACCOUNT_MAP_PLATOV, DOMAIN_ACCOUNT_MAP_PRIME, DOMAIN_ACCOUNT_MAP_MIGHTYCALL)
+    for v in m.values()
+))

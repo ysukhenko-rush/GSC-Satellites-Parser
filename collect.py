@@ -9,7 +9,13 @@ from google.auth.transport.requests import Request
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
-from config import DOMAIN_ACCOUNT_MAP, DOMAIN_ACCOUNT_MAP_PLATOV, DOMAIN_ACCOUNT_MAP_PRIME, TOKENS_DIR
+from config import (
+    DOMAIN_ACCOUNT_MAP,
+    DOMAIN_ACCOUNT_MAP_PLATOV,
+    DOMAIN_ACCOUNT_MAP_PRIME,
+    DOMAIN_ACCOUNT_MAP_MIGHTYCALL,
+    TOKENS_DIR,
+)
 
 SHEET_NAME = 'Метрики'
 GSC_LAG_DAYS = 3
@@ -27,6 +33,13 @@ PROJECTS = {
     'prime': {
         'domain_map': DOMAIN_ACCOUNT_MAP_PRIME,
         'spreadsheet_id': os.environ.get('SPREADSHEET_ID_PRIME'),
+    },
+    'mightycall': {
+        'domain_map': DOMAIN_ACCOUNT_MAP_MIGHTYCALL,
+        'spreadsheet_id': (
+            os.environ.get('SPREADSHEET_ID_MIGHTYCALL')
+            or '1YjzY6E8d-TRqS2_EzkTf-3hI9R4oISn6yfKKf_mks34'
+        ),
     },
 }
 
