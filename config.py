@@ -67,6 +67,9 @@ DOMAIN_ACCOUNT_MAP_PRIME = {
     1: {"domain": "best-ddos-protection-tools.com", "account": "rshcorporate1@gmail.com"},
     2: {"domain": "bot-management-solutions.com",   "account": "rshcorporate2@gmail.com"},
     3: {"domain": "igaming-fraud-detection.com",    "account": "rshcorporate3@gmail.com"},
+    4: {"domain": "managed-security-services-providers.com", "account": "rshcorporate5@gmail.com"},
+    5: {"domain": "managed-firewall-services.com",          "account": "rshcorporate6@gmail.com"},
+    6: {"domain": "cloudflare-partner.org",                  "account": "rshcorporate8@gmail.com"},
 }
 
 # ── mightycall.com ────────────────────────────────────────────────────────────
