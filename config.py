@@ -31,6 +31,14 @@ DOMAIN_ACCOUNT_MAP = {
     # 28: best-sms-services.com  — аккаунт неизвестен, пропуск
     # 29: top-sms-services.com   — аккаунт неизвестен, пропуск
     30: {"domain": "sms-activator.biz",              "account": "rshcorporate3@gmail.com"},
+    31: {"domain": "sms-activate-china.com",         "account": "rshcorporate6@gmail.com"},
+    32: {"domain": "hero-sms-china.com",             "account": "rshcorporate6@gmail.com"},
+    33: {"domain": "otp-cepat.id",                   "account": "rshcorporate8@gmail.com"},
+    34: {"domain": "jasa-otp.id",                    "account": "rshcorporate1@gmail.com"},
+    35: {"domain": "jasa-otp-murah.id",               "account": "rshcorporate1@gmail.com"},
+    36: {"domain": "jasaotp-online.id",              "account": "rshcorporate2@gmail.com"},
+    37: {"domain": "otp-cepat-murah.id",             "account": "rshcorporate2@gmail.com"},
+    38: {"domain": "otp-cepat-online.id",            "account": "rshcorporate2@gmail.com"},
 }
 
 # ── platov.co ──────────────────────────────────────────────────────────────────
