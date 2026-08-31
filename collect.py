@@ -116,6 +116,11 @@ def collect_all(project: str, config: dict):
     services = {}       # кеш сервисов по аккаунту
     expired_accounts = set()  # аккаунты с протухшими токенами
 
+    def placeholder_row(note: str):
+        all_rows.append([
+            domain_num, '', '', 0, 0, 0, 0, collection_date, '', note,
+        ])
+
     for domain_num, info in sorted(domain_map.items()):
         account = info["account"]
         domain = info["domain"]
@@ -130,33 +135,41 @@ def collect_all(project: str, config: dict):
 
             rows = fetch_metrics_with_fallback(services[account], domain)
 
-            for row in rows:
-                keys = row.get('keys', [])
-                keyword = keys[0] if keys else ''
-                raw_page = keys[1] if len(keys) > 1 else ''
-                path = urlparse(raw_page).path
-                page = 'главная' if not path or path == '/' else path
-                all_rows.append([
-                    domain_num,
-                    page,
-                    keyword,
-                    row.get('clicks', 0),
-                    row.get('impressions', 0),
-                    round(row.get('ctr', 0) * 100, 2),
-                    round(row.get('position', 0), 1),
-                    collection_date,
-                ])
+            if rows:
+                for row in rows:
+                    keys = row.get('keys', [])
+                    keyword = keys[0] if keys else ''
+                    raw_page = keys[1] if len(keys) > 1 else ''
+                    path = urlparse(raw_page).path
+                    page = 'главная' if not path or path == '/' else path
+                    all_rows.append([
+                        domain_num,
+                        page,
+                        keyword,
+                        row.get('clicks', 0),
+                        row.get('impressions', 0),
+                        round(row.get('ctr', 0) * 100, 2),
+                        round(row.get('position', 0), 1),
+                        collection_date,
+                        '',
+                        '',
+                    ])
+            else:
+                placeholder_row('Метрик пока нет (0 за 28 дней) — домен либо новый, либо не подтверждён в Search Console')
             time.sleep(1)  # защита от rate limit
 
         except FileNotFoundError:
             print(f"  Токен не найден для {account}, пропуск")
             expired_accounts.add(account)
+            placeholder_row('Токен аккаунта не найден')
         except Exception as e:
             if 'invalid_grant' in str(e) or 'token_expired' in str(e):
                 expired_accounts.add(account)
                 print(f"  Токен протух для {account}, пропуск")
+                placeholder_row('Токен аккаунта протух, нужна переавторизация')
             else:
                 print(f"  Ошибка для {account}: {e}")
+                placeholder_row(f'Ошибка сбора: {e}')
 
     if expired_accounts:
         warning = (
@@ -180,11 +193,11 @@ def collect_all(project: str, config: dict):
     if all_rows:
         existing_rows = len(sheet.get_all_values()) - 1
         if existing_rows > 0:
-            clear_range = f"A2:H{existing_rows + 1}"
+            clear_range = f"A2:J{existing_rows + 1}"
             sheet.batch_clear([clear_range])
-            print(f"Очищено строк в A-H: {existing_rows}")
+            print(f"Очищено строк в A-J: {existing_rows}")
 
-        sheet.update(f"A2:H{len(all_rows) + 1}", all_rows, value_input_option='RAW')
+        sheet.update(f"A2:J{len(all_rows) + 1}", all_rows, value_input_option='RAW')
         print(f"Записано строк: {len(all_rows)}")
     else:
         if not expired_accounts:
