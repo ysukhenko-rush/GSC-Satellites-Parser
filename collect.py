@@ -112,23 +112,43 @@ def fetch_metrics(service, property_uri: str, start_date: str, end_date: str):
         return [], e
 
 
+def fetch_aggregate_metrics(service, property_uri: str, start_date: str, end_date: str):
+    """Запрос БЕЗ разбивки по query/page — агрегированные клики/показы по
+    всему сайту за период. Google анонимизирует (скрывает) строки в разбивке
+    по конкретным query+page при низком трафике, но агрегат при этом не
+    скрывается — так можно поймать реальные клики/показы, даже когда
+    подробная разбивка приходит пустой."""
+    try:
+        response = service.searchanalytics().query(
+            siteUrl=property_uri,
+            body={
+                'startDate': start_date,
+                'endDate': end_date,
+                'rowLimit': 1,
+            }
+        ).execute()
+        rows = response.get('rows', [])
+        return rows[0] if rows else None
+    except Exception:
+        return None
+
+
 def fetch_metrics_with_fallback(service, domain: str):
     """Сначала определяет, под каким property URI домен доступен этому аккаунту
     (domain-property или URL-префикс), затем пробует периоды 28→21→14→7→3 дня.
-    Возвращает (rows, verified):
-      rows — найденные строки метрик (может быть пустым списком)
-      verified — True, если домен доступен этому аккаунту хоть в каком-то
-                 виде (domain-property ИЛИ URL-префикс) — то есть реально
-                 добавлен/подтверждён в Search Console под этим аккаунтом,
-                 False — если недоступен вообще ни в одном варианте."""
+    Возвращает (rows, verified, property_uri, aggregate):
+      rows — найденные строки метрик с разбивкой по query+page (может быть пустым)
+      verified — True, если домен доступен этому аккаунту хоть в каком-то виде
+                 (domain-property ИЛИ URL-префикс)
+      property_uri — под каким URI домен реально доступен (или None)
+      aggregate — если rows пуст, но за 28 дней есть реальные клики/показы
+                  в агрегате (Google скрыл разбивку по query из-за низкого
+                  трафика) — словарь {'clicks','impressions','ctr','position'},
+                  иначе None."""
     property_uri = resolve_property_uri(service, domain)
     if property_uri is None:
         print(f"    Домен недоступен этому аккаунту ни как sc-domain, ни как URL-префикс")
-        return [], False, None
-
-    is_url_prefix = property_uri != f"sc-domain:{domain}"
-    if is_url_prefix:
-        print(f"    Найден как URL-префикс свойство: {property_uri} (не как sc-domain — стоит пересоздать как domain-property)")
+        return [], False, None, None
 
     for days in COLLECTION_DAYS_FALLBACK:
         start_date, end_date = get_date_range(days)
@@ -136,12 +156,21 @@ def fetch_metrics_with_fallback(service, domain: str):
         if error is None:
             if rows:
                 print(f"    Данные найдены за {days} дней ({start_date} → {end_date})")
-                return rows, True, property_uri
+                return rows, True, property_uri, None
             print(f"    Нет данных за {days} дней, пробуем меньше...")
         else:
             print(f"    Ошибка для {domain} ({property_uri}): {error}")
+
+    # Разбивки по query+page нет ни в одном периоде — проверяем агрегат за 28 дней:
+    # вдруг Google просто скрыл детализацию из-за низкого трафика.
+    start_date, end_date = get_date_range(28)
+    aggregate = fetch_aggregate_metrics(service, property_uri, start_date, end_date)
+    if aggregate and (aggregate.get('clicks', 0) or aggregate.get('impressions', 0)):
+        print(f"    Разбивки по запросам нет, но в агрегате за 28 дней есть клики/показы (Google скрыл детализацию)")
+        return [], True, property_uri, aggregate
+
     print(f"    Данных нет даже за 3 дня (домен подтверждён, но метрик пока нет)")
-    return [], True, property_uri
+    return [], True, property_uri, None
 
 
 def collect_all(project: str, config: dict):
@@ -186,11 +215,7 @@ def collect_all(project: str, config: dict):
                 creds = load_creds(account)
                 services[account] = build('searchconsole', 'v1', credentials=creds)
 
-            rows, verified, property_uri = fetch_metrics_with_fallback(services[account], domain)
-            url_prefix_note = (
-                f'Найден как URL-префикс ({property_uri}), не как domain-property — стоит пересоздать в GSC'
-                if property_uri and property_uri != f"sc-domain:{domain}" else ''
-            )
+            rows, verified, property_uri, aggregate = fetch_metrics_with_fallback(services[account], domain)
 
             if rows:
                 for row in rows:
@@ -209,13 +234,23 @@ def collect_all(project: str, config: dict):
                         round(row.get('position', 0), 1),
                         collection_date,
                         '',
-                        url_prefix_note,
+                        '',
                     ])
+            elif aggregate:
+                all_rows.append([
+                    domain_num,
+                    '',
+                    '',
+                    aggregate.get('clicks', 0),
+                    aggregate.get('impressions', 0),
+                    round(aggregate.get('ctr', 0) * 100, 2),
+                    round(aggregate.get('position', 0), 1),
+                    collection_date,
+                    '',
+                    'Агрегат за 28 дней — Google скрыл разбивку по запросам (низкий трафик)',
+                ])
             elif verified:
-                note = 'Домен подтверждён в GSC, метрик пока ещё нет'
-                if url_prefix_note:
-                    note += ' — ' + url_prefix_note
-                placeholder_row(note)
+                placeholder_row('Домен подтверждён в GSC, метрик пока ещё нет')
             else:
                 placeholder_row('Домен не найден/не подтверждён в Search Console под этим аккаунтом (ни sc-domain, ни URL-префикс)')
             time.sleep(1)  # защита от rate limit
