@@ -59,10 +59,44 @@ def load_creds(account_email: str):
     return creds
 
 
-def fetch_metrics(service, domain: str, start_date: str, end_date: str):
+# Домен мог быть добавлен в Search Console и как domain-property (sc-domain:),
+# и как URL-префикс (с/без www, http/https) — пробуем все варианты по очереди.
+PROPERTY_URI_TEMPLATES = [
+    "sc-domain:{domain}",
+    "https://{domain}/",
+    "https://www.{domain}/",
+    "http://{domain}/",
+    "http://www.{domain}/",
+]
+
+
+def resolve_property_uri(service, domain: str):
+    """Пробует все варианты property URI одним лёгким запросом (rowLimit=1)
+    и возвращает первый, к которому есть доступ у этого аккаунта.
+    None, если ни один вариант не доступен."""
+    end = datetime.date.today() - datetime.timedelta(days=GSC_LAG_DAYS)
+    start = end - datetime.timedelta(days=28)
+    for template in PROPERTY_URI_TEMPLATES:
+        uri = template.format(domain=domain)
+        try:
+            service.searchanalytics().query(
+                siteUrl=uri,
+                body={
+                    'startDate': str(start),
+                    'endDate': str(end),
+                    'dimensions': ['query'],
+                    'rowLimit': 1,
+                }
+            ).execute()
+            return uri
+        except Exception:
+            continue
+    return None
+
+
+def fetch_metrics(service, property_uri: str, start_date: str, end_date: str):
     """Возвращает (rows, error). error is None, если запрос к GSC прошёл успешно
-    (то есть домен подтверждён/доступен под этим аккаунтом) — даже если rows пуст."""
-    property_uri = f"sc-domain:{domain}"
+    (то есть property_uri доступен под этим аккаунтом) — даже если rows пуст."""
     try:
         response = service.searchanalytics().query(
             siteUrl=property_uri,
@@ -79,32 +113,35 @@ def fetch_metrics(service, domain: str, start_date: str, end_date: str):
 
 
 def fetch_metrics_with_fallback(service, domain: str):
-    """Пробует периоды 28→21→14→7→3 дня.
+    """Сначала определяет, под каким property URI домен доступен этому аккаунту
+    (domain-property или URL-префикс), затем пробует периоды 28→21→14→7→3 дня.
     Возвращает (rows, verified):
       rows — найденные строки метрик (может быть пустым списком)
-      verified — True, если хотя бы один запрос к GSC прошёл без ошибки
-                 (домен подтверждён в Search Console под этим аккаунтом),
-                 False — если все попытки упали с ошибкой (домен, скорее всего,
-                 не добавлен/не подтверждён в Search Console под этим аккаунтом)."""
-    verified = False
-    last_error = None
+      verified — True, если домен доступен этому аккаунту хоть в каком-то
+                 виде (domain-property ИЛИ URL-префикс) — то есть реально
+                 добавлен/подтверждён в Search Console под этим аккаунтом,
+                 False — если недоступен вообще ни в одном варианте."""
+    property_uri = resolve_property_uri(service, domain)
+    if property_uri is None:
+        print(f"    Домен недоступен этому аккаунту ни как sc-domain, ни как URL-префикс")
+        return [], False, None
+
+    is_url_prefix = property_uri != f"sc-domain:{domain}"
+    if is_url_prefix:
+        print(f"    Найден как URL-префикс свойство: {property_uri} (не как sc-domain — стоит пересоздать как domain-property)")
+
     for days in COLLECTION_DAYS_FALLBACK:
         start_date, end_date = get_date_range(days)
-        rows, error = fetch_metrics(service, domain, start_date, end_date)
+        rows, error = fetch_metrics(service, property_uri, start_date, end_date)
         if error is None:
-            verified = True
             if rows:
                 print(f"    Данные найдены за {days} дней ({start_date} → {end_date})")
-                return rows, True
+                return rows, True, property_uri
             print(f"    Нет данных за {days} дней, пробуем меньше...")
         else:
-            last_error = error
-            print(f"    Ошибка для {domain}: {error}")
-    if verified:
-        print(f"    Данных нет даже за 3 дня (домен подтверждён, но метрик пока нет)")
-    else:
-        print(f"    Домен недоступен под этим аккаунтом — вероятно, не добавлен/не подтверждён в Search Console ({last_error})")
-    return [], verified
+            print(f"    Ошибка для {domain} ({property_uri}): {error}")
+    print(f"    Данных нет даже за 3 дня (домен подтверждён, но метрик пока нет)")
+    return [], True, property_uri
 
 
 def collect_all(project: str, config: dict):
@@ -149,7 +186,11 @@ def collect_all(project: str, config: dict):
                 creds = load_creds(account)
                 services[account] = build('searchconsole', 'v1', credentials=creds)
 
-            rows, verified = fetch_metrics_with_fallback(services[account], domain)
+            rows, verified, property_uri = fetch_metrics_with_fallback(services[account], domain)
+            url_prefix_note = (
+                f'Найден как URL-префикс ({property_uri}), не как domain-property — стоит пересоздать в GSC'
+                if property_uri and property_uri != f"sc-domain:{domain}" else ''
+            )
 
             if rows:
                 for row in rows:
@@ -168,12 +209,15 @@ def collect_all(project: str, config: dict):
                         round(row.get('position', 0), 1),
                         collection_date,
                         '',
-                        '',
+                        url_prefix_note,
                     ])
             elif verified:
-                placeholder_row('Домен подтверждён в GSC, метрик пока ещё нет')
+                note = 'Домен подтверждён в GSC, метрик пока ещё нет'
+                if url_prefix_note:
+                    note += ' — ' + url_prefix_note
+                placeholder_row(note)
             else:
-                placeholder_row('Домен не найден/не подтверждён в Search Console под этим аккаунтом')
+                placeholder_row('Домен не найден/не подтверждён в Search Console под этим аккаунтом (ни sc-domain, ни URL-префикс)')
             time.sleep(1)  # защита от rate limit
 
         except FileNotFoundError:
