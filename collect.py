@@ -59,7 +59,9 @@ def load_creds(account_email: str):
     return creds
 
 
-def fetch_metrics(service, domain: str, start_date: str, end_date: str) -> list:
+def fetch_metrics(service, domain: str, start_date: str, end_date: str):
+    """Возвращает (rows, error). error is None, если запрос к GSC прошёл успешно
+    (то есть домен подтверждён/доступен под этим аккаунтом) — даже если rows пуст."""
     property_uri = f"sc-domain:{domain}"
     try:
         response = service.searchanalytics().query(
@@ -71,24 +73,38 @@ def fetch_metrics(service, domain: str, start_date: str, end_date: str) -> list:
                 'rowLimit': 1000,
             }
         ).execute()
-        return response.get('rows', [])
+        return response.get('rows', []), None
     except Exception as e:
-        print(f"    Ошибка для {domain}: {e}")
-        return []
+        return [], e
 
 
-def fetch_metrics_with_fallback(service, domain: str) -> list:
-    """Пробует периоды 28→21→14→7→3 дня, возвращает первый непустой результат."""
+def fetch_metrics_with_fallback(service, domain: str):
+    """Пробует периоды 28→21→14→7→3 дня.
+    Возвращает (rows, verified):
+      rows — найденные строки метрик (может быть пустым списком)
+      verified — True, если хотя бы один запрос к GSC прошёл без ошибки
+                 (домен подтверждён в Search Console под этим аккаунтом),
+                 False — если все попытки упали с ошибкой (домен, скорее всего,
+                 не добавлен/не подтверждён в Search Console под этим аккаунтом)."""
+    verified = False
+    last_error = None
     for days in COLLECTION_DAYS_FALLBACK:
         start_date, end_date = get_date_range(days)
-        rows = fetch_metrics(service, domain, start_date, end_date)
-        if rows:
-            print(f"    Данные найдены за {days} дней ({start_date} → {end_date})")
-            return rows
-        else:
+        rows, error = fetch_metrics(service, domain, start_date, end_date)
+        if error is None:
+            verified = True
+            if rows:
+                print(f"    Данные найдены за {days} дней ({start_date} → {end_date})")
+                return rows, True
             print(f"    Нет данных за {days} дней, пробуем меньше...")
-    print(f"    Данных нет даже за 3 дня")
-    return []
+        else:
+            last_error = error
+            print(f"    Ошибка для {domain}: {error}")
+    if verified:
+        print(f"    Данных нет даже за 3 дня (домен подтверждён, но метрик пока нет)")
+    else:
+        print(f"    Домен недоступен под этим аккаунтом — вероятно, не добавлен/не подтверждён в Search Console ({last_error})")
+    return [], verified
 
 
 def collect_all(project: str, config: dict):
@@ -133,7 +149,7 @@ def collect_all(project: str, config: dict):
                 creds = load_creds(account)
                 services[account] = build('searchconsole', 'v1', credentials=creds)
 
-            rows = fetch_metrics_with_fallback(services[account], domain)
+            rows, verified = fetch_metrics_with_fallback(services[account], domain)
 
             if rows:
                 for row in rows:
@@ -154,8 +170,10 @@ def collect_all(project: str, config: dict):
                         '',
                         '',
                     ])
+            elif verified:
+                placeholder_row('Домен подтверждён в GSC, метрик пока ещё нет')
             else:
-                placeholder_row('Метрик пока нет (0 за 28 дней) — домен либо новый, либо не подтверждён в Search Console')
+                placeholder_row('Домен не найден/не подтверждён в Search Console под этим аккаунтом')
             time.sleep(1)  # защита от rate limit
 
         except FileNotFoundError:
