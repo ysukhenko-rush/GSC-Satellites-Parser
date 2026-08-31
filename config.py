@@ -39,6 +39,11 @@ DOMAIN_ACCOUNT_MAP = {
     36: {"domain": "jasaotp-online.id",              "account": "rshcorporate2@gmail.com"},
     37: {"domain": "otp-cepat-murah.id",             "account": "rshcorporate2@gmail.com"},
     38: {"domain": "otp-cepat-online.id",            "account": "rshcorporate2@gmail.com"},
+    39: {"domain": "hero-sms-cn.com",                "account": "rshcorporate4@gmail.com"},
+    40: {"domain": "smsactivate-cn.com",              "account": "rshcorporate6@gmail.com"},
+    41: {"domain": "turbootp.id",                     "account": "rshcorporate9@gmail.com"},
+    42: {"domain": "turbo-otp.id",                    "account": "rshcorporate9@gmail.com"},
+    43: {"domain": "turbootp-service.id",             "account": "rshcorporate8@gmail.com"},
 }
 
 # ── platov.co ──────────────────────────────────────────────────────────────────
