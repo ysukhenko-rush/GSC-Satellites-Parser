@@ -136,7 +136,7 @@ def fetch_aggregate_metrics(service, property_uri: str, start_date: str, end_dat
 def fetch_metrics_with_fallback(service, domain: str):
     """Сначала определяет, под каким property URI домен доступен этому аккаунту
     (domain-property или URL-префикс), затем пробует периоды 28→21→14→7→3 дня.
-    Возвращает (rows, verified, property_uri, aggregate):
+    Возвращает (rows, verified, property_uri, aggregate, period):
       rows — найденные строки метрик с разбивкой по query+page (может быть пустым)
       verified — True, если домен доступен этому аккаунту хоть в каком-то виде
                  (domain-property ИЛИ URL-префикс)
@@ -144,19 +144,23 @@ def fetch_metrics_with_fallback(service, domain: str):
       aggregate — если rows пуст, но за 28 дней есть реальные клики/показы
                   в агрегате (Google скрыл разбивку по query из-за низкого
                   трафика) — словарь {'clicks','impressions','ctr','position'},
-                  иначе None."""
+                  иначе None.
+      period — строка вида "28 дней (2026-07-31 → 2026-08-28)" для периода,
+               за который реально найдены данные (rows или aggregate),
+               иначе None."""
     property_uri = resolve_property_uri(service, domain)
     if property_uri is None:
         print(f"    Домен недоступен этому аккаунту ни как sc-domain, ни как URL-префикс")
-        return [], False, None, None
+        return [], False, None, None, None
 
     for days in COLLECTION_DAYS_FALLBACK:
         start_date, end_date = get_date_range(days)
         rows, error = fetch_metrics(service, property_uri, start_date, end_date)
         if error is None:
             if rows:
-                print(f"    Данные найдены за {days} дней ({start_date} → {end_date})")
-                return rows, True, property_uri, None
+                period = f"{days} дней ({start_date} → {end_date})"
+                print(f"    Данные найдены за {period}")
+                return rows, True, property_uri, None, period
             print(f"    Нет данных за {days} дней, пробуем меньше...")
         else:
             print(f"    Ошибка для {domain} ({property_uri}): {error}")
@@ -166,11 +170,12 @@ def fetch_metrics_with_fallback(service, domain: str):
     start_date, end_date = get_date_range(28)
     aggregate = fetch_aggregate_metrics(service, property_uri, start_date, end_date)
     if aggregate and (aggregate.get('clicks', 0) or aggregate.get('impressions', 0)):
-        print(f"    Разбивки по запросам нет, но в агрегате за 28 дней есть клики/показы (Google скрыл детализацию)")
-        return [], True, property_uri, aggregate
+        period = f"28 дней ({start_date} → {end_date}), агрегат"
+        print(f"    Разбивки по запросам нет, но в агрегате за 28 дней ({start_date} → {end_date}) есть клики/показы")
+        return [], True, property_uri, aggregate, period
 
     print(f"    Данных нет даже за 3 дня (домен подтверждён, но метрик пока нет)")
-    return [], True, property_uri, None
+    return [], True, property_uri, None, None
 
 
 def collect_all(project: str, config: dict):
@@ -198,9 +203,9 @@ def collect_all(project: str, config: dict):
     services = {}       # кеш сервисов по аккаунту
     expired_accounts = set()  # аккаунты с протухшими токенами
 
-    def placeholder_row(note: str):
+    def placeholder_row(note: str, period: str = ''):
         all_rows.append([
-            domain_num, '', '', 0, 0, 0, 0, collection_date, '', note,
+            domain_num, '', '', 0, 0, 0, 0, collection_date, '', note, period,
         ])
 
     for domain_num, info in sorted(domain_map.items()):
@@ -215,7 +220,7 @@ def collect_all(project: str, config: dict):
                 creds = load_creds(account)
                 services[account] = build('searchconsole', 'v1', credentials=creds)
 
-            rows, verified, property_uri, aggregate = fetch_metrics_with_fallback(services[account], domain)
+            rows, verified, property_uri, aggregate, period = fetch_metrics_with_fallback(services[account], domain)
 
             if rows:
                 for row in rows:
@@ -235,6 +240,7 @@ def collect_all(project: str, config: dict):
                         collection_date,
                         '',
                         '',
+                        period,
                     ])
             elif aggregate:
                 all_rows.append([
@@ -247,7 +253,8 @@ def collect_all(project: str, config: dict):
                     round(aggregate.get('position', 0), 1),
                     collection_date,
                     '',
-                    'Агрегат за 28 дней — Google скрыл разбивку по запросам (низкий трафик)',
+                    'Агрегат — Google скрыл разбивку по запросам (низкий трафик)',
+                    period,
                 ])
             elif verified:
                 placeholder_row('Домен подтверждён в GSC, метрик пока ещё нет')
@@ -290,11 +297,11 @@ def collect_all(project: str, config: dict):
     if all_rows:
         existing_rows = len(sheet.get_all_values()) - 1
         if existing_rows > 0:
-            clear_range = f"A2:J{existing_rows + 1}"
+            clear_range = f"A2:K{existing_rows + 1}"
             sheet.batch_clear([clear_range])
-            print(f"Очищено строк в A-J: {existing_rows}")
+            print(f"Очищено строк в A-K: {existing_rows}")
 
-        sheet.update(f"A2:J{len(all_rows) + 1}", all_rows, value_input_option='RAW')
+        sheet.update(f"A2:K{len(all_rows) + 1}", all_rows, value_input_option='RAW')
         print(f"Записано строк: {len(all_rows)}")
     else:
         if not expired_accounts:
