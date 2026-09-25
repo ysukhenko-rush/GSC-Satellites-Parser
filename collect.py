@@ -10,10 +10,11 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
 from config import (
-    DOMAIN_ACCOUNT_MAP,
+    DOMAIN_ACCOUNT_MAP_HERO_SMS,
     DOMAIN_ACCOUNT_MAP_PLATOV,
     DOMAIN_ACCOUNT_MAP_PRIME,
     DOMAIN_ACCOUNT_MAP_MIGHTYCALL,
+    DOMAIN_ACCOUNT_MAP_APPLIANCE,
     TOKENS_DIR,
 )
 
@@ -22,8 +23,8 @@ GSC_LAG_DAYS = 3
 COLLECTION_DAYS_FALLBACK = [28, 21, 14, 7, 3]
 
 PROJECTS = {
-    'smsactivate': {
-        'domain_map': DOMAIN_ACCOUNT_MAP,
+    'hero-sms': {
+        'domain_map': DOMAIN_ACCOUNT_MAP_HERO_SMS,
         'spreadsheet_id': os.environ.get('SPREADSHEET_ID', '17u_jItYm8SgBtgO6Cck5gPCbAu_fL45lKhlguzkLzow'),
     },
     'platov': {
@@ -40,6 +41,10 @@ PROJECTS = {
             os.environ.get('SPREADSHEET_ID_MIGHTYCALL')
             or '1YjzY6E8d-TRqS2_EzkTf-3hI9R4oISn6yfKKf_mks34'
         ),
+    },
+    'appliance-procare': {
+        'domain_map': DOMAIN_ACCOUNT_MAP_APPLIANCE,
+        'spreadsheet_id': os.environ.get('SPREADSHEET_ID_APPLIANCE', '1A5h7wwO4t3O2U0YqQ6ZAX3rxqGaE1arzimA7lSExYL4'),
     },
 }
 

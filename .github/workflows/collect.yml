@@ -48,4 +48,5 @@ jobs:
           SPREADSHEET_ID_PLATOV: ${{ secrets.SPREADSHEET_ID_PLATOV }}
           SPREADSHEET_ID_PRIME: ${{ secrets.SPREADSHEET_ID_PRIME }}
           SPREADSHEET_ID_MIGHTYCALL: ${{ secrets.SPREADSHEET_ID_MIGHTYCALL }}
+          SPREADSHEET_ID_APPLIANCE: ${{ secrets.SPREADSHEET_ID_APPLIANCE }}
         run: python -u collect.py

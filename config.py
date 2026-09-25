@@ -1,6 +1,7 @@
 TOKENS_DIR = 'tokens'
 
-DOMAIN_ACCOUNT_MAP = {
+# ── hero-sms.com (ранее smsactivate) ──────────────────────────────────────────
+DOMAIN_ACCOUNT_MAP_HERO_SMS = {
     1:  {"domain": "smsactivate.biz",               "account": "y.sukhenko@rush-agency.ru"},
     2:  {"domain": "sms-activate.us.com",            "account": "rshcorporate5@gmail.com"},
     3:  {"domain": "smsactivate2.com",               "account": "rshcorporate6@gmail.com"},
@@ -44,6 +45,12 @@ DOMAIN_ACCOUNT_MAP = {
     41: {"domain": "turbootp.id",                     "account": "rshcorporate9@gmail.com"},
     42: {"domain": "turbo-otp.id",                    "account": "rshcorporate9@gmail.com"},
     43: {"domain": "turbootp-service.id",             "account": "rshcorporate8@gmail.com"},
+    44: {"domain": "heros-sms-china.com",                    "account": "rshcorporate4@gmail.com"},
+    45: {"domain": "herosmsapp-cn.com",                      "account": "rshcorporate4@gmail.com"},
+    46: {"domain": "firefox-fun-cn.com",                     "account": "rshcorporate4@gmail.com"},
+    47: {"domain": "firefox-sms-verification-code.com",     "account": "rshcorporate9@gmail.com"},
+    48: {"domain": "firefox-sms-verification-service.com",  "account": "rshcorporate5@gmail.com"},
+    49: {"domain": "firefox-sms-verification-platform.com", "account": "rshcorporate6@gmail.com"},
 }
 
 # ── platov.co ──────────────────────────────────────────────────────────────────
@@ -99,8 +106,13 @@ DOMAIN_ACCOUNT_MAP_MIGHTYCALL = {
     10: {"domain": "auto-caller-app.com",                      "account": "rshcorporate11@gmail.com"},
 }
 
+# ── appliance-procare (Appliance ProCare, appliancepro.care) ──────────────────────────────────
+DOMAIN_ACCOUNT_MAP_APPLIANCE = {
+    1: {"domain": "cupertino-appliance-repair.com", "account": "rshcorporate2@gmail.com"},
+}
+
 ACCOUNTS = list(set(
     v["account"]
-    for m in (DOMAIN_ACCOUNT_MAP, DOMAIN_ACCOUNT_MAP_PLATOV, DOMAIN_ACCOUNT_MAP_PRIME, DOMAIN_ACCOUNT_MAP_MIGHTYCALL)
+    for m in (DOMAIN_ACCOUNT_MAP_HERO_SMS, DOMAIN_ACCOUNT_MAP_PLATOV, DOMAIN_ACCOUNT_MAP_PRIME, DOMAIN_ACCOUNT_MAP_MIGHTYCALL, DOMAIN_ACCOUNT_MAP_APPLIANCE)
     for v in m.values()
 ))
