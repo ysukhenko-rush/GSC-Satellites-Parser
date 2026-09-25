@@ -44,7 +44,10 @@ PROJECTS = {
     },
     'appliance-procare': {
         'domain_map': DOMAIN_ACCOUNT_MAP_APPLIANCE,
-        'spreadsheet_id': os.environ.get('SPREADSHEET_ID_APPLIANCE', '1A5h7wwO4t3O2U0YqQ6ZAX3rxqGaE1arzimA7lSExYL4'),
+        'spreadsheet_id': (
+            os.environ.get('SPREADSHEET_ID_APPLIANCE')
+            or '1A5h7wwO4t3O2U0YqQ6ZAX3rxqGaE1arzimA7lSExYL4'
+        ),
     },
 }
 
