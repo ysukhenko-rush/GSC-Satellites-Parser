@@ -29,28 +29,40 @@ DOMAIN_ACCOUNT_MAP_HERO_SMS = {
     25: {"domain": "smsactivate1.us.com",            "account": "rshcorporate1@gmail.com"},
     26: {"domain": "smsactivate.vip",                "account": "rshcorporate1@gmail.com"},
     27: {"domain": "smsactivate.mx",                 "account": "rshcorporate3@gmail.com"},
-    # 28: best-sms-services.com  — аккаунт неизвестен, пропуск
+    # 28: best-sms-services.com  — аккаунт неизвестен (в листе "Учет работ - US" стоит ?), пропуск
     # 29: top-sms-services.com   — аккаунт неизвестен, пропуск
     30: {"domain": "sms-activator.biz",              "account": "rshcorporate3@gmail.com"},
-    31: {"domain": "sms-activate-china.com",         "account": "rshcorporate6@gmail.com"},
-    32: {"domain": "hero-sms-china.com",             "account": "rshcorporate6@gmail.com"},
-    33: {"domain": "otp-cepat.id",                   "account": "rshcorporate8@gmail.com"},
-    34: {"domain": "jasa-otp.id",                    "account": "rshcorporate1@gmail.com"},
-    35: {"domain": "jasa-otp-murah.id",               "account": "rshcorporate1@gmail.com"},
-    36: {"domain": "jasaotp-online.id",              "account": "rshcorporate2@gmail.com"},
-    37: {"domain": "otp-cepat-murah.id",             "account": "rshcorporate2@gmail.com"},
-    38: {"domain": "otp-cepat-online.id",            "account": "rshcorporate2@gmail.com"},
-    39: {"domain": "hero-sms-cn.com",                "account": "rshcorporate4@gmail.com"},
-    40: {"domain": "smsactivate-cn.com",              "account": "rshcorporate6@gmail.com"},
-    41: {"domain": "turbootp.id",                     "account": "rshcorporate9@gmail.com"},
-    42: {"domain": "turbo-otp.id",                    "account": "rshcorporate9@gmail.com"},
-    43: {"domain": "turbootp-service.id",             "account": "rshcorporate8@gmail.com"},
-    44: {"domain": "heros-sms-china.com",                    "account": "rshcorporate4@gmail.com"},
-    45: {"domain": "herosmsapp-cn.com",                      "account": "rshcorporate4@gmail.com"},
-    46: {"domain": "firefox-fun-cn.com",                     "account": "rshcorporate4@gmail.com"},
-    47: {"domain": "firefox-sms-verification-code.com",     "account": "rshcorporate9@gmail.com"},
-    48: {"domain": "firefox-sms-verification-service.com",  "account": "rshcorporate5@gmail.com"},
-    49: {"domain": "firefox-sms-verification-platform.com", "account": "rshcorporate6@gmail.com"},
+    31: {"domain": "sms-activate-china.com",         "account": "rshcorporate6@gmail.com"},   # 6-cn
+    32: {"domain": "hero-sms-china.com",             "account": "rshcorporate6@gmail.com"},   # 7-cn
+    33: {"domain": "otp-cepat.id",                   "account": "rshcorporate8@gmail.com"},   # 4-id
+    34: {"domain": "jasa-otp.id",                    "account": "rshcorporate1@gmail.com"},   # 5-id
+    35: {"domain": "jasa-otp-murah.id",               "account": "rshcorporate1@gmail.com"},   # 6-id
+    36: {"domain": "jasaotp-online.id",              "account": "rshcorporate2@gmail.com"},   # 7-id
+    37: {"domain": "otp-cepat-murah.id",             "account": "rshcorporate2@gmail.com"},   # 8-id
+    38: {"domain": "otp-cepat-online.id",            "account": "rshcorporate2@gmail.com"},   # 9-id
+    39: {"domain": "hero-sms-cn.com",                "account": "rshcorporate4@gmail.com"},   # 1-cn
+    40: {"domain": "smsactivate-cn.com",              "account": "rshcorporate6@gmail.com"},   # 2-cn
+    41: {"domain": "turbootp.id",                     "account": "rshcorporate9@gmail.com"},   # 1-id
+    42: {"domain": "turbo-otp.id",                    "account": "rshcorporate9@gmail.com"},   # 2-id
+    43: {"domain": "turbootp-service.id",             "account": "rshcorporate8@gmail.com"},   # 3-id
+    44: {"domain": "heros-sms-china.com",                    "account": "rshcorporate4@gmail.com"},   # 8-cn
+    45: {"domain": "herosmsapp-cn.com",                      "account": "rshcorporate4@gmail.com"},   # 9-cn
+    46: {"domain": "firefox-fun-cn.com",                     "account": "rshcorporate4@gmail.com"},   # 10-cn
+    47: {"domain": "firefox-sms-verification-code.com",     "account": "rshcorporate9@gmail.com"},   # 11-cn
+    48: {"domain": "firefox-sms-verification-service.com",  "account": "rshcorporate5@gmail.com"},   # 12-cn
+    49: {"domain": "firefox-sms-verification-platform.com", "account": "rshcorporate6@gmail.com"},   # 13-cn
+    # ── Новые домены (добавлено 29.10.2026). Нумерация = единый список в satellites-numbering.txt ──
+    50: {"domain": "worldcode-win.com",                     "account": "rshcorporate5@gmail.com"},   # 14-cn
+    51: {"domain": "worldcode-cn.com",                      "account": "rshcorporate5@gmail.com"},   # 15-cn
+    52: {"domain": "worldcode-china.com",                   "account": "rshcorporate3@gmail.com"},   # 16-cn
+    53: {"domain": "sms-verification-service.com",           "account": "rshcorporate3@gmail.com"},   # 17-cn
+    54: {"domain": "otp-indonesia.id",                       "account": "rshcorporate9@gmail.com"},   # 10-id
+    55: {"domain": "nomor-sekali-pakai.id",                  "account": "rshcorporate9@gmail.com"},   # 11-id
+    56: {"domain": "terima-sms-online.id",                   "account": "rshcorporate1@gmail.com"},   # 12-id
+    57: {"domain": "jasa-otp-virtual.id",                    "account": "rshcorporate3@gmail.com"},   # 13-id
+    58: {"domain": "nomor-virtual-indonesia.id",             "account": "rshcorporate3@gmail.com"},   # 14-id
+    # 59: nokos-murah.id (15-id в txt / 16-id в листе "Учет работ - ID") — аккаунт GSC в листе не указан, пропуск
+    # 3-cn herosms-review-cn.com, 4-cn herosms-cn.com, 5-cn sms-activate-cn.com — BLOCKED, в сборе не участвуют
 }
 
 # ── platov.co ──────────────────────────────────────────────────────────────────
